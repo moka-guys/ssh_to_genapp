@@ -2,11 +2,9 @@
 Created on 7 Jun 2017
 This script is designed to be called by MOKA and run from a trust machine (using the python executable on the S drive).
 
-The script takes an argument -g <GEL Participant ID>
+The script takes an argument -c followed by whatever command is to be executed eg /path/to/python /path/to/python/script.py -a opt1 -b opt2
 
 It then ssh's into the server provided in the host.txt file using the username and password provided in the password and username files.
-
-Using the path to the python executable found within the environment the python script is called, passing the GEL participant ID as an argument.
 
 The stderr and stdout are printed.
 
@@ -24,18 +22,15 @@ class ssh_n_run():
         self.pw = ""
         self.user = ""
         self.host = ""
-        self.password_file = "H:\\EclipseWorkspace\\run_gel_report_script\\password.txt"
-        self.username_file = "H:\\EclipseWorkspace\\run_gel_report_script\\username.txt"
-        self.host_file = "H:\\EclipseWorkspace\\run_gel_report_script\\host.txt"
+        self.password_file = "F:\\Moka\\Files\\Software\\run_gel_report_script\\password.txt"
+        self.username_file = "F:\\Moka\\Files\\Software\\run_gel_report_script\\username.txt"
+        self.host_file = "F:\\Moka\\Files\\Software\\run_gel_report_script\\host.txt"
 
         # Usage example
-        self.usage = "S:\Genetics_Data2\Array\Software\Python\python.exe ssh_n_run.py -g <GELParticipantID>"
+        self.usage = "S:\Genetics_Data2\Array\Software\Python\python.exe ssh_n_run.py -c <command>"
 
         # Gel participant id
-        self.gelID = ""
-
-        # Bash command - use the path to the python executable in the env to ensure that the
-        self.bash = "~/miniconda2/envs/pyODBC/bin/python ~/Apps/CIP_API/gel_report.py -g "
+        self.command = ""
 
     def get_credentials(self):
         '''Read in all the parameters to ssh into server'''
@@ -50,10 +45,11 @@ class ssh_n_run():
             self.host = f.readline()
 
     def get_input(self, argv):
-        '''Capture the gel participant ID from the command line'''
-        # define expected inputs
+        '''Capture the command to be executed'''
+        #print argv
+		# define expected inputs
         try:
-            opts, args = getopt.getopt(argv, "g:")
+            opts, args = getopt.getopt(argv, "c:")
 
         # raise errors with usage eg
         except getopt.GetoptError:
@@ -62,9 +58,9 @@ class ssh_n_run():
 
         # loop through the arguments
         for opt, arg in opts:
-            if opt in ("-g"):
-                # capture the GEL proband ID
-                self.gelID = str(arg)
+            if opt in ("-c"):
+                # capture the command to be executed
+                self.command = str(arg)
 
     def get_into_server(self):
         # ssh client
@@ -74,7 +70,7 @@ class ssh_n_run():
         # connect to server
         ssh.connect(self.host, username=self.user, password=self.pw)
         # send command
-        stdin, stdout, stderr = ssh.exec_command(self.bash + str(self.gelID))
+        stdin, stdout, stderr = ssh.exec_command(self.command)
         # loop through and print stdout
         if stdout:
             for line in stdout:
